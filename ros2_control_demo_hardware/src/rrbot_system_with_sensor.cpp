@@ -27,6 +27,11 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#ifdef WIN32
+// Win32 rand is multithreaded, so rand_r is not defined
+#define rand_r rand
+#endif
+
 namespace ros2_control_demo_hardware
 {
 hardware_interface::CallbackReturn RRBotSystemWithSensorHardware::on_init(
@@ -110,7 +115,7 @@ hardware_interface::CallbackReturn RRBotSystemWithSensorHardware::on_configure(
   // END: This part here is for exemplary purposes - Please do not copy to your production code
 
   // reset values always when configuring hardware
-  for (uint i = 0; i < hw_joint_states_.size(); i++)
+  for (uint32_t i = 0; i < hw_joint_states_.size(); i++)
   {
     hw_joint_states_[i] = 0;
     hw_joint_commands_[i] = 0;
@@ -125,14 +130,14 @@ std::vector<hardware_interface::StateInterface>
 RRBotSystemWithSensorHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (uint i = 0; i < info_.joints.size(); i++)
+  for (uint32_t i = 0; i < info_.joints.size(); i++)
   {
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_joint_states_[i]));
   }
 
   // export sensor state interface
-  for (uint i = 0; i < info_.sensors[0].state_interfaces.size(); i++)
+  for (uint32_t i = 0; i < info_.sensors[0].state_interfaces.size(); i++)
   {
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &hw_sensor_states_[i]));
@@ -145,7 +150,7 @@ std::vector<hardware_interface::CommandInterface>
 RRBotSystemWithSensorHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
-  for (uint i = 0; i < info_.joints.size(); i++)
+  for (uint32_t i = 0; i < info_.joints.size(); i++)
   {
     command_interfaces.emplace_back(hardware_interface::CommandInterface(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_joint_commands_[i]));
@@ -170,7 +175,7 @@ hardware_interface::CallbackReturn RRBotSystemWithSensorHardware::on_activate(
   // END: This part here is for exemplary purposes - Please do not copy to your production code
 
   // command and state should be equal when starting
-  for (uint i = 0; i < hw_joint_states_.size(); i++)
+  for (uint32_t i = 0; i < hw_joint_states_.size(); i++)
   {
     hw_joint_commands_[i] = hw_joint_states_[i];
   }
@@ -213,7 +218,7 @@ hardware_interface::return_type RRBotSystemWithSensorHardware::read(
   // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
   RCLCPP_INFO(rclcpp::get_logger("RRBotSystemWithSensorHardware"), "Reading...please wait...");
 
-  for (uint i = 0; i < hw_joint_states_.size(); i++)
+  for (uint32_t i = 0; i < hw_joint_states_.size(); i++)
   {
     // Simulate RRBot's movement
     hw_joint_states_[i] =
@@ -224,12 +229,12 @@ hardware_interface::return_type RRBotSystemWithSensorHardware::read(
   }
   RCLCPP_INFO(rclcpp::get_logger("RRBotSystemWithSensorHardware"), "Joints successfully read!");
 
-  for (uint i = 0; i < hw_sensor_states_.size(); i++)
+  for (uint32_t i = 0; i < hw_sensor_states_.size(); i++)
   {
     // Simulate RRBot's sensor data
-    unsigned int seed = time(NULL) + i;
+    srand(time(NULL) + i);
     hw_sensor_states_[i] =
-      static_cast<float>(rand_r(&seed)) / (static_cast<float>(RAND_MAX / hw_sensor_change_));
+      static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / hw_sensor_change_));
     RCLCPP_INFO(
       rclcpp::get_logger("RRBotSystemWithSensorHardware"), "Got state %e for interface %s!",
       hw_sensor_states_[i], info_.sensors[0].state_interfaces[i].name.c_str());
@@ -246,7 +251,7 @@ hardware_interface::return_type ros2_control_demo_hardware::RRBotSystemWithSenso
   // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
   RCLCPP_INFO(rclcpp::get_logger("RRBotSystemWithSensorHardware"), "Writing...please wait...");
 
-  for (uint i = 0; i < hw_joint_commands_.size(); i++)
+  for (uint32_t i = 0; i < hw_joint_commands_.size(); i++)
   {
     // Simulate sending commands to the hardware
     RCLCPP_INFO(

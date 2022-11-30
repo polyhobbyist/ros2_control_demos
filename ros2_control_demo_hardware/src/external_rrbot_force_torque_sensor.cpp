@@ -27,6 +27,7 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+
 namespace ros2_control_demo_hardware
 {
 hardware_interface::CallbackReturn ExternalRRBotForceTorqueSensorHardware::on_init(
@@ -57,7 +58,7 @@ ExternalRRBotForceTorqueSensorHardware::export_state_interfaces()
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
   // export sensor state interface
-  for (uint i = 0; i < info_.sensors[0].state_interfaces.size(); i++)
+  for (uint32_t i = 0; i < info_.sensors[0].state_interfaces.size(); i++)
   {
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       info_.sensors[0].name, info_.sensors[0].state_interfaces[i].name, &hw_sensor_states_[i]));
@@ -116,12 +117,12 @@ hardware_interface::return_type ExternalRRBotForceTorqueSensorHardware::read(
   // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
   RCLCPP_INFO(rclcpp::get_logger("ExternalRRBotForceTorqueSensorHardware"), "Reading...");
 
-  for (uint i = 0; i < hw_sensor_states_.size(); i++)
+  for (uint32_t i = 0; i < hw_sensor_states_.size(); i++)
   {
     // Simulate RRBot's sensor data
-    unsigned int seed = time(NULL) + i;
+    srand(time(NULL) + i);
     hw_sensor_states_[i] =
-      static_cast<float>(rand_r(&seed)) / (static_cast<float>(RAND_MAX / hw_sensor_change_));
+      static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / hw_sensor_change_));
     RCLCPP_INFO(
       rclcpp::get_logger("ExternalRRBotForceTorqueSensorHardware"), "Got state %e for sensor %u!",
       hw_sensor_states_[i], i);
